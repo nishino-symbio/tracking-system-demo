@@ -5,24 +5,26 @@
   "state": {
     "mode": 0,
     "explode": 0,
-    "cutaway": true,
+    "cutaway": false,
     "equipment": true,
     "labels": true,
     "insects": true,
     "demo": true,
     "piston": 1,
     "flow": true,
-    "view": "below"
+    "view": "all",
+    "backgroundColor": "#e8edec",
+    "groundPlane": true
   },
   "orbit": {
     "target": [
-      0.8,
-      -0.28,
-      0
+      3.3227303496810277,
+      3.7758898789756508,
+      0.7991504406464273
     ],
-    "yaw": 0.5,
-    "elev": -0.12,
-    "distance": 13.47524099340689
+    "yaw": 0.14499999999999555,
+    "elev": 1.079000000000001,
+    "distance": 21.738360470496033
   },
   "parts": [
     {
@@ -278,34 +280,6 @@
       "visible": true
     },
     {
-      "id": "supportL",
-      "offset": [
-        0,
-        0,
-        0
-      ],
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "visible": true
-    },
-    {
-      "id": "supportR",
-      "offset": [
-        0,
-        0,
-        0
-      ],
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "visible": true
-    },
-    {
       "id": "catch",
       "offset": [
         -0.36226163091709185,
@@ -321,20 +295,6 @@
     },
     {
       "id": "reservoir",
-      "offset": [
-        0,
-        0,
-        0
-      ],
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "visible": true
-    },
-    {
-      "id": "extSupport",
       "offset": [
         0,
         0,
@@ -378,9 +338,9 @@
     {
       "id": "ir",
       "offset": [
-        -0.72,
-        0.79,
-        -0.47
+        0.22,
+        -0.54,
+        0.54
       ],
       "rotation": [
         0,
@@ -408,7 +368,7 @@
       "offset": [
         0,
         0,
-        0
+        0.35
       ],
       "rotation": [
         0,
@@ -419,20 +379,6 @@
     },
     {
       "id": "lights",
-      "offset": [
-        0,
-        0,
-        0
-      ],
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "visible": true
-    },
-    {
-      "id": "rack",
       "offset": [
         0,
         0,
