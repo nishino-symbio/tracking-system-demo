@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>カマドウマのトラッキング水槽 | Interactive 3D</title>
 <meta name="description" content="同一フォルダの配置JSONを自動読込し、スマホで見え方・昆虫視点を切り替えられる3D水槽モデル。">
-<!-- Revision: 2026-09-08 | sibling layout autoload + persistent mobile controls -->
+<!-- Revision: 2026-09-08 | sibling layout autoload + mobile controls + configurable background + synchronized exterior floor + supports/rack/bench removed -->
 <style>
 :root{--ink:#18332f;--muted:#73827d;--accent:#247d6c;--soft:#e9f2ed;--line:#dce4df;--paper:#fafbf7;--panel:#ffffffeb;--red:#a75042;--shadow:0 12px 36px #1d393014;}
 *{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;font-family:Inter,"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;color:var(--ink);background:#e8eeea;font-size:12px}
@@ -94,6 +94,58 @@ body{overscroll-behavior:none}
  #toast{top:60px;white-space:normal;text-align:center}
 }
 
+/* Background controls stay available in both overview and insect-eye modes. */
+#stage{--scene-ink:#2e5147;--scene-muted:#71897e}
+.stageTitle .title{color:var(--scene-ink)}
+.stageTitle .top,.stageTitle .sub{color:var(--scene-muted)}
+#backgroundBtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px}
+.backgroundSwatch{display:inline-block;flex-shrink:0;width:15px;height:15px;border:1px solid #7b8d7d80;border-radius:4px;background:#e8edec;box-shadow:inset 0 0 0 1px #ffffff55}
+#backgroundDialog{max-width:440px}
+#backgroundDialog::backdrop{background:#12271d26;backdrop-filter:none}
+#backgroundDialog .dialogTop{padding:18px 22px 15px;align-items:center}
+#backgroundDialog .dialogTop h2{font-size:17px}
+#backgroundDialog .dialogBody{padding:17px 22px 19px}
+.backgroundIntro{font-size:11px;line-height:1.8;color:var(--muted);margin:0 0 16px}
+.backgroundPresets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:9px 0 18px}
+.backgroundPresets button{-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:7px;padding:10px 8px;min-height:44px;font-size:11px}
+.backgroundPresets .backgroundSwatch{width:19px;height:19px;border-radius:5px}
+.backgroundPresets button.active .backgroundSwatch{border-color:#ffffff88}
+.backgroundCustom{display:flex;align-items:center;gap:9px;margin-top:9px}
+#backgroundColor{width:64px;height:44px;padding:3px;border:1px solid var(--line);border-radius:7px;background:white;cursor:pointer;flex-shrink:0}
+#backgroundColor::-webkit-color-swatch-wrapper{padding:0}
+#backgroundColor::-webkit-color-swatch{border:0;border-radius:4px}
+#backgroundColor::-moz-color-swatch{border:0;border-radius:4px}
+#backgroundHex{width:0;flex:1;min-width:0;height:44px;border:1px solid var(--line);border-radius:7px;padding:10px 12px;font:13px ui-monospace,monospace;color:var(--ink);background:white}
+#backgroundHex[aria-invalid="true"]{border-color:#b54c38;outline-color:#b54c38}
+#backgroundError{font-size:10px;line-height:1.7;color:#a04d37;margin:7px 0 0}
+.backgroundFloor{border-top:1px solid var(--line);padding-top:15px;margin-top:18px}
+.backgroundFloor .check{min-height:28px;font-size:11px;gap:8px}
+.backgroundFloor .smallHint{margin:6px 0 0}
+.backgroundFooter{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 22px;border-top:1px solid var(--line);background:var(--paper);position:sticky;bottom:0;z-index:1}
+.backgroundFooter button{min-height:39px;font-size:11px}
+@media(max-width:600px){
+ .brand{min-width:0;flex:1;overflow:hidden;margin-right:8px}
+ .brand>div:last-child{min-width:0}
+ .brand h1,.brand .en{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #sidebarToggle{flex-shrink:0}
+ .headerActions{flex-shrink:0;gap:5px}
+ #backgroundBtn{gap:4px;font-size:10px;padding:7px 6px}
+ #backgroundBtn .backgroundSwatch{width:12px;height:12px}
+ #backgroundDialog{width:calc(100% - 24px);max-height:calc(100dvh - 28px)}
+ #backgroundDialog .dialogTop{padding:15px 18px 12px}
+ #backgroundDialog .dialogBody{padding:15px 18px}
+ .backgroundFooter{padding:12px 18px}
+}
+@media(max-height:520px){
+ #backgroundDialog{max-height:calc(100dvh - 20px)}
+ #backgroundDialog .dialogTop{padding-top:12px;padding-bottom:10px}
+ #backgroundDialog .dialogBody{padding-top:12px;padding-bottom:12px}
+ .backgroundPresets{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-bottom:12px}
+ .backgroundPresets button{flex-direction:column;gap:5px;padding:7px 2px;font-size:9px}
+ .backgroundIntro{margin-bottom:10px}
+ .backgroundFloor{margin-top:12px;padding-top:10px}
+}
+
 </style>
 </head>
 <body>
@@ -104,6 +156,7 @@ body{overscroll-behavior:none}
   <div><div class="en">BEHAVIOR OBSERVATION / INTERACTIVE MODEL</div><h1>カマドウマのトラッキング水槽</h1></div>
  </div>
  <div class="headerActions"><span class="badge"><i></i>写真からの概略再構成</span>
+  <button id="backgroundBtn" type="button" aria-haspopup="dialog" aria-controls="backgroundDialog" title="3D表示の背景色を変更"><i id="backgroundSwatch" class="backgroundSwatch" aria-hidden="true"></i><span>背景色</span></button>
   <button id="aboutBtn"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5"/><path d="M10 9v5M10 5.7v.3"/></svg><span class="buttonText">使い方・写真</span></button>
   <button id="screenshotBtn"><svg viewBox="0 0 20 20"><path d="M3 5h3l1-2h6l1 2h3v12H3Z"/><circle cx="10" cy="10.5" r="3"/></svg><span class="buttonText">画像保存</span></button>
   <button id="resetAllBtn" class="hideSmall" title="初期状態に戻す"><svg viewBox="0 0 20 20"><path d="M4 7a6 6 0 1 1-1 5M4 3v4h4"/></svg>初期化</button>
@@ -133,7 +186,7 @@ body{overscroll-behavior:none}
    <div class="eyebrow">03 / LAYERS</div><h2 class="sectionTitle">表示レイヤー</h2>
    <div class="checks">
     <label class="check"><span>手前・右の外壁を切り欠く</span><input id="cutaway" type="checkbox" checked></label>
-    <label class="check"><span>外部機器・支持台 <span class="note">給排水 / 撮影</span></span><input id="equipment" type="checkbox" checked></label>
+    <label class="check"><span>外部機器 <span class="note">給排水 / 撮影</span></span><input id="equipment" type="checkbox" checked></label>
     <label class="check"><span>部品ラベル</span><input id="showLabels" type="checkbox" checked></label>
     <label class="check"><span>カマドウマを表示</span><input id="showInsects" type="checkbox" checked></label>
     <label class="check"><span>カマドウマの歩行デモ</span><input id="demo" type="checkbox"></label>
@@ -216,9 +269,37 @@ body{overscroll-behavior:none}
  <div id="loading"><div class="loaderIcon"></div><b>観察装置を組み立てています</b><small>部品・底床・光源を読み込み中</small></div>
 </section>
 </main>
+<dialog id="backgroundDialog" aria-labelledby="backgroundTitle" aria-describedby="backgroundIntro">
+ <div class="dialogTop"><div><div class="eyebrow">BACKGROUND</div><h2 id="backgroundTitle">背景色</h2></div><button id="closeBackground" class="closeIcon" aria-label="背景色の設定を閉じる">×</button></div>
+ <div class="dialogBody">
+  <p id="backgroundIntro" class="backgroundIntro">3D表示の背景と外側の床面を同じ色に変更します。選んだ色はすぐに反映されます。</p>
+  <div class="miniLabel">プリセット</div>
+  <div class="backgroundPresets" role="group" aria-label="背景色のプリセット">
+   <button type="button" data-background="#e8edec" aria-pressed="true"><i class="backgroundSwatch" style="background:#e8edec" aria-hidden="true"></i>標準</button>
+   <button type="button" data-background="#ffffff" aria-pressed="false"><i class="backgroundSwatch" style="background:#ffffff" aria-hidden="true"></i>白</button>
+   <button type="button" data-background="#000000" aria-pressed="false"><i class="backgroundSwatch" style="background:#000000" aria-hidden="true"></i>黒</button>
+   <button type="button" data-background="#b8bdc5" aria-pressed="false"><i class="backgroundSwatch" style="background:#b8bdc5" aria-hidden="true"></i>グレー</button>
+   <button type="button" data-background="#18222e" aria-pressed="false"><i class="backgroundSwatch" style="background:#18222e" aria-hidden="true"></i>濃紺</button>
+   <button type="button" data-background="#dbeafe" aria-pressed="false"><i class="backgroundSwatch" style="background:#dbeafe" aria-hidden="true"></i>淡い青</button>
+  </div>
+  <label class="miniLabel" for="backgroundColor">好きな色を指定</label>
+  <div class="backgroundCustom">
+   <input id="backgroundColor" type="color" value="#e8edec" aria-label="背景色をカラーピッカーで選択">
+   <input id="backgroundHex" type="text" value="#E8EDEC" maxlength="7" placeholder="#RRGGBB" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="背景色の16進カラーコード" aria-describedby="backgroundError" aria-invalid="false">
+  </div>
+  <p id="backgroundError" role="status" hidden>例：#FFFFFF。3桁または6桁の16進カラーコードを入力してください。</p>
+  <div class="backgroundFloor">
+   <label class="check"><span>外側の床面を表示</span><input id="groundPlane" type="checkbox" checked></label>
+   <p class="smallHint">床面の色は背景色に連動し、影は残します。オフで床面を非表示にできます。水槽内部の富士砂の色は変わりません。</p>
+  </div>
+  <p class="smallHint">背景色は見え方の切替とは独立した設定です。「画像保存」に反映され、「配置を保存」で配置JSONにも記録されます。</p>
+ </div>
+ <div class="backgroundFooter"><button id="resetBackground" type="button">背景設定を標準に戻す</button><button id="doneBackground" type="button" class="primary">閉じる</button></div>
+</dialog>
 <dialog id="aboutDialog"><div class="dialogTop"><div><div class="eyebrow">MODEL NOTES & REFERENCE PHOTOGRAPHS</div><h2>使い方と再構成の前提</h2></div><button id="closeAbout" class="closeIcon" aria-label="閉じる">×</button></div><div class="dialogBody">
  <div class="aboutGrid"><div>
   <h3>写真に合わせた構成</h3><p>黒色の富士砂、左側の赤色シートの隠れ家、中央の2つの給餌口、右側のプールとトリカルネット、底面からの給排水、高所の給水タンク、側方の赤外線投光器、天井側のカメラ・可視光光源を再構成しています。</p>
+  <h3>省略した部品</h3><p>撮影ラックの支柱・横棒、実験台、水槽と給水・照射装置の支持台を省いています。水槽や機器の位置関係は維持した説明用モデルです。旧配置JSON内の削除部品は無視します。</p>
   <h3>寸法・機構</h3><p>寸法図がないため、長辺：短辺：高さをおおむね6：3：3とする任意単位で制作しています。実寸、粒径、管径、流量、ピストンのストローク、配管の曲率は未計測です。製作図・光学設計・流体シミュレーションには使えません。</p>
   <h3>移動・保存</h3><p>部品を選択すると右下に操作パネルが開きます。スライダーまたは3軸の矢印で移動し、↻でY軸回転できます。「配置を保存」はJSONファイルを書き出します。書き出したファイルを tracking_arena_layout.json の名前でHTMLと同じ公開フォルダに置くと、次回起動時に自動で読み込みます。見つからない場合は標準配置で起動します。ローカルファイルを直接開いた場合は「配置を読込」から選択してください。「画像保存」は現在の3D描画をPNGで保存します。</p>
  </div><div>
@@ -344,7 +425,7 @@ void main(){
 const FRAG=`#version 300 es
 precision highp float;
 in vec3 vWorld,vNormal,vColor;in vec2 vUV;in vec4 vShadow;
-uniform vec3 uColor,uEye,uPick;uniform float uAlpha,uSpec,uEmissive,uTextureOn,uMode,uShadowOn,uPass,uRed,uTime;
+uniform vec3 uColor,uEye,uPick;uniform float uAlpha,uSpec,uEmissive,uTextureOn,uMode,uShadowOn,uPass,uRed,uTime,uBackdropFloor;
 uniform sampler2D uTexture,uShadow;
 uniform vec4 uShelter; // center x, center z, underside y, enabled
 out vec4 outColor;
@@ -369,6 +450,10 @@ void main(){
  vec3 n=normalize(vNormal);if(!gl_FrontFacing)n=-n;
  vec3 l=normalize(vec3(-3.,9.,5.)),view=normalize(uEye-vWorld),halfV=normalize(l+view);
  float shadow=uShadowOn>.5?shadowValue(n):1.;
+ // Treat the exterior floor as a backdrop, not an experimental surface.
+ // Match the clear color exactly outside shadows in every vision mode.
+ // Skip tone mapping, specular highlights and spectral remapping here.
+ if(uBackdropFloor>.5){outColor=vec4(c*mix(.78,1.,shadow),alpha);return;}
  float ambient=.49;
  float cover=0.;
  if(uShelter.w>.5){
@@ -440,14 +525,14 @@ class Renderer {
   let gl=this.gl,p=this.main,list=this.meshes.filter(m=>m.visible&&(!m.part||m.part.visible));
   if(!picking&&this.shadowDirty)this.drawShadow(list,mode,time);
   gl.bindFramebuffer(gl.FRAMEBUFFER,picking?this.pickFB:null);gl.viewport(0,0,this.canvas.width,this.canvas.height);gl.depthMask(true);gl.enable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
-  gl.clearColor(...(picking?[0,0,0]:mode===1?[.90,.925,.915]:mode===2?[.88,.89,.88]:[.91,.93,.925]),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(p);
+  gl.clearColor(...(picking?[0,0,0]:(this.backgroundColor||[.91,.93,.925])),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(p);
   this.mat(p,'uVP',vp);this.mat(p,'uLightVP',this.lightVP);this.v3(p,'uEye',eye);this.f(p,'uMode',mode);this.f(p,'uTime',time);this.f(p,'uPass',picking?1:0);
   gl.uniform4fv(this.loc(p,'uShelter'),shelter);
   gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,this.shadowTex);gl.uniform1i(this.loc(p,'uShadow'),1);gl.activeTexture(gl.TEXTURE0);gl.uniform1i(this.loc(p,'uTexture'),0);
   let solid=[],transparent=[],gizmos=[];for(let m of list){if(picking&&!m.pick)continue;if(m.gizmo)gizmos.push(m);else if(!picking&&this.alpha(m,mode)<.999)transparent.push(m);else solid.push(m);}
   transparent.sort((a,b)=>V.len(V.sub(M.point(b.model,b.center),eye))-V.len(V.sub(M.point(a.model,a.center),eye)));
   const draw=m=>{
-   let mat=m.mat;this.mat(p,'uModel',m.model);this.v3(p,'uColor',mat.color);this.f(p,'uAlpha',this.alpha(m,mode));this.f(p,'uSpec',mat.spec??.05);this.f(p,'uEmissive',mat.emissive??0);this.f(p,'uWater',mat.water?1:0);this.f(p,'uRed',mat.red?1:0);this.f(p,'uShadowOn',mat.unshadow?0:1);this.f(p,'uTextureOn',mat.texture?1:0);
+   let mat=m.mat;this.mat(p,'uModel',m.model);this.v3(p,'uColor',mat.color);this.f(p,'uAlpha',this.alpha(m,mode));this.f(p,'uSpec',mat.spec??.05);this.f(p,'uEmissive',mat.emissive??0);this.f(p,'uWater',mat.water?1:0);this.f(p,'uRed',mat.red?1:0);this.f(p,'uShadowOn',mat.unshadow?0:1);this.f(p,'uTextureOn',mat.texture?1:0);this.f(p,'uBackdropFloor',mat.backdropFloor?1:0);
    gl.bindTexture(gl.TEXTURE_2D,mat.texture||this.white);let id=m.pickId??m.part?.pickId??0;this.v3(p,'uPick',[(id&255)/255,((id>>8)&255)/255,((id>>16)&255)/255]);gl.bindVertexArray(m.vao);gl.drawElements(gl.TRIANGLES,m.count,gl.UNSIGNED_INT,0);
   };
   solid.forEach(draw);if(!picking){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);transparent.forEach(draw);}
@@ -463,7 +548,7 @@ class Renderer {
 function buildModel(renderer){
  const materials={},parts=[],byId={},rnd=seeded(20260908);
  const mat=(id,color,opts={})=>(materials[id]={id,color:rgb(color),...opts});
- mat('frame','#ecede6',{spec:.08});mat('foam','#e2e4dc',{spec:.015});
+ mat('frame','#ecede6',{spec:.08});
  mat('glass','#bbd9d4',{alpha:.105,spec:.50,unshadow:true});
  mat('diffuser','#e5e8de',{spec:.01});mat('red','#a91610',{alpha:.76,spec:.18,red:true});
  mat('redEdge','#811815',{spec:.15,red:true});mat('black','#172020',{spec:.11});
@@ -478,8 +563,8 @@ function buildModel(renderer){
  mat('ribbon','#d4dbcd',{spec:.04});mat('ribbonLine','#648195',{spec:.08});
  mat('tape','#81a657',{spec:.02});mat('lens','#263e45',{spec:.9});
  mat('cricket','#5d4a37',{spec:.035});mat('cricketDark','#372f29',{spec:.025});
- mat('cricketSpot','#9c7b55',{spec:.025});mat('bench','#7b8c8a',{spec:.3});
- mat('floor','#c5d0c9',{spec:.015});mat('shadowDisk','#09120e',{unshadow:true,emissive:.25});
+ mat('cricketSpot','#9c7b55',{spec:.025});
+ mat('floor','#e8edec',{spec:0,backdropFloor:true});mat('shadowDisk','#09120e',{unshadow:true,emissive:.25});
  const S={box:Shapes.box(),sphere:Shapes.sphere(16,10),smallSphere:Shapes.sphere(10,6),cyl:Shapes.cylinder(1,1,1,24),oct:Shapes.octa(),pebble:Shapes.icosa(),plane:Shapes.plane()};
  function part(id,name,description,category,base=[0,0,0],explode=[0,0,0],options={}){
   let p={id,name,description,category,base,explode,offset:[0,0,0],rot:[0,0,0],baseRot:[0,0,0],anchor:[0,0,0],userVisible:true,visible:true,pickId:parts.length+1,batches:{},...options};
@@ -599,12 +684,7 @@ function buildModel(renderer){
   const fn=(st)=>M.compose([0,.319-(1-st.piston)*1.17,0]);
   pistons.push(...[special(feed,'frame',head,fn),special(feed,'food',foodg,fn),special(feed,'steel',stem,fn),special(feed,'black',stop,fn),special(feed,'wood',handle,fn)]);
  }
- // Two stacked polystyrene supports leave the central underside accessible.
- for(let i=0;i<2;i++){
-  let p=part(i?'supportR':'supportL',i?'右側の発泡スチロール支持台':'左側の発泡スチロール支持台','水槽をかさ上げする発泡スチロール支持台。中央には給餌操作・排水受けのための空間があります。','support',[i?2.38:-2.38,-1.26,0],[i?1.15:-1.15,0,0]);
-  for(let j=0;j<6;j++){let y=-1.02+j*.405;box(p,'foam',[0,y,0],[1.30,.355,2.63]);box(p,'frame',[0,y+.181,0],[1.35,.045,2.68]);}
-  for(let y of [-.77,-.35,.06,.47,.88])for(let z of [-.83,.05,.86])box(p,'frame',[i?-.661:.661,y,z],[.014,.23,.55]);
- }
+ // Omit the two polystyrene stands; retain the arena at its saved coordinates.
  let catchP=part('catch','排水受けトレー','プールからの排水を受ける、水槽下の白いトレー。循環ポンプは写真にないため設けていません。','water',[.05,-2.45,.32],[0,.30,1.75],{anchor:[0,.3,0],number:'07'});
  tray(catchP,2.27,2.1,.30);add(catchP,'water',S.plane,[0,.075,0],[2.19,1,2.03]);
  const reservoir=part('reservoir','高所の給水タンク','水槽より高い位置の透明な給水タンクから、水頭差でプールへ給水する構成です。容量・液位は概略です。','water',[4.35,3.03,-1.36],[2.75,1.45,-.6],{anchor:[0,1.2,0],number:'05'});
@@ -616,9 +696,7 @@ function buildModel(renderer){
  add(reservoir,'water',S.plane,[0,.88,0],[1.17,1,1.25]);
  box(reservoir,'water',[0,.45,0],[1.16,.82,1.23]);
  cyl(reservoir,'pvc',[.34,-.03,.12],.067,.13);
- const extSupport=part('extSupport','給水・照射装置の支持台','給水タンクと赤外線投光器を高所に配置するための支持部。写真の積み重ねを簡略化しています。','support',[4.30,.15,-1.22],[2.7,0,-.6]);
- for(let j=0;j<9;j++)box(extSupport,j>4?'black':'foam',[0,-2.26+j*.60,0],[1.31,.57,1.59]);
- box(extSupport,'black',[0,2.65,0],[1.43,.12,1.75]);
+ // The auxiliary black/white equipment stand is intentionally omitted.
  const inletPath=smoothPath([[4.69,3.0,-1.24],[4.95,2.56,-1.0],[5.12,1.30,-.45],[5.12,-.76,.90],[4.1,-1.05,.80],[2.0,-.82,-.45],[1.21,-.27,-.89],[1.21,.245,-.89]],12);
  const outletPath=smoothPath([[2.68,.252,.93],[2.70,-.20,.94],[2.10,-.82,1.14],[.81,-1.65,.57],[.30,-2.28,.34]],12);
  let supply=part('supply','給水チューブ・調整コック','高所のタンクから調整コックを経て、底面からプールへ給水するチューブ。配管の細かな曲率・長さは写真からの推定です。','water',[0,0,0],[2.6,0,.45],{anchor:[5.12,-.76,.9]});
@@ -654,17 +732,13 @@ function buildModel(renderer){
  add(camera,'ribbon',rg);
  for(let k=-2;k<=2;k++)tube(camera,'ribbonLine',ribbonPath.map(p=>V.add(p,[k*.018,.004,0])),.002,5);
  tube(server,'ribbon',smoothPath([[.52,.1,-.12],[.93,.04,-.08],[1.06,-.32,-.08],[1.08,-.45,-1.0],[2.0,-.45,-1.05]],9),.035,10);
- const lights=part('lights','天井側の可視光光源','ラック上部に並ぶ可視光照明。照射・影は表示用に簡略化しており、実測照度の再現ではありません。','imaging',[0,5.22,0],[0,3.1,-.25]);
+ const lights=part('lights','天井側の可視光光源','水槽上方に並ぶ可視光照明。照射・影は表示用に簡略化しており、実測照度の再現ではありません。','imaging',[0,5.22,0],[0,3.1,-.25]);
  for(let z of [-1.48,1.48]){
   box(lights,'steel',[0,.026,z],[9.94,.088,.13]);
   cyl(lights,'whiteLED',[0,-.041,z],.041,9.65,[0,0,Math.PI/2]);
   for(let x of [-4.88,4.88])cyl(lights,'frame',[x,-.04,z],.046,.13,[0,0,Math.PI/2]);
  }
- const rack=part('rack','撮影ラックと実験台','写真の撮影用ラック・実験台を簡略化。周辺の無関係な飼育容器や背景カーテンは省いています。','room');
- box(rack,'bench',[.30,-2.57,0],[12.5,.20,6.2]);
- for(let x of [-5.6,5.6]){cyl(rack,'steel',[x,1.30,-2.36],.052,7.55);for(let y of [-2.48,5.02,5.15])cyl(rack,'black',[x,y,-2.36],.069,.065);}
- cyl(rack,'steel',[0,5.12,-2.36],.052,11.25,[0,0,Math.PI/2]);
- box(rack,'floor',[0,-2.73,0],[22,.10,18]);
+ // Rack posts, crossbar and physical workbench are intentionally omitted.
  // Wingless camel-cricket shapes: six legs and long antennae, not spiders.
  const insects=part('insects','カマドウマ（模式個体）','長い触角と発達した後脚を持つ、翅のないカマドウマの模式モデルです。個体数・体サイズ・歩行軌跡は写真の計測結果ではありません。','arena',[0,0,0],[0,1.0,0]);
  function cricketGeos(){
@@ -699,6 +773,11 @@ function buildModel(renderer){
   let mesh=renderer.upload(g,materials[m],p,{cast:!['glass','water','tube','inflow','outflow','lens','whiteLED','ledLens'].includes(m),pick:!['glass','water'].includes(m)});
   if(['lid','glassFront','glassBack','glassLeft','glassRight'].includes(p.id))mesh.pick=false;
  }
+ // A non-selectable backdrop is NOT a bench or an apparatus part. Keep the
+ // previous floor/background color link and shadow display without restoring
+ // any of the deleted supports. It is controlled only through view settings.
+ renderer.upload(new Geo().add(S.plane,[0,-2.68,0],[22,1,18]),materials.floor,null,
+                 {cast:false,pick:false,backdrop:true});
  return{materials,parts,byId,pistons,flowMeshes,bugMeshes,inletPath,outletPath,S,isPool};
 }
 
@@ -707,7 +786,7 @@ function buildModel(renderer){
 const $=id=>document.getElementById(id), $$=sel=>[...document.querySelectorAll(sel)];
 let renderer,model,state,orbit,eye,vp,partMap,parts,selected=null,time=0,needsRender=true,drag=null,keys=new Set(),savedWalk=null,animation=null,cameraTween=null,feedStart=null,toastTimer=null;
 const walk={x:.32,z:1.08,yaw:1.18,pitch:.055,height:.1,phase:0};
-const defaults={mode:0,explode:0,cutaway:true,equipment:true,labels:true,insects:true,demo:false,piston:1,flow:false,view:'all',walk:false};
+const defaults={mode:0,explode:0,cutaway:true,equipment:true,labels:true,insects:true,demo:false,piston:1,flow:false,view:'all',walk:false,backgroundColor:'#e8edec',groundPlane:true};
 const initialOrbit={target:[.60,1.12,0],yaw:.57,elev:.49,distance:17.1};
 const compactUI=window.matchMedia('(max-width:900px), (pointer:coarse)');
 const MODE_NAMES=['通常','赤色を暗く','850 nm風'];
@@ -721,7 +800,71 @@ function copy(v){return JSON.parse(JSON.stringify(v));}
 function axisId(id){return id>=2001&&id<=2003?id-2001:-1;}
 function project(p){let n=M.project(vp,p);return{ x:(n[0]+1)*viewWidth/2,y:(1-n[1])*viewHeight/2,z:n[2],w:n[3] };}
 function changed(){needsRender=true;if(renderer)renderer.shadowDirty=true;}
+
+// Optional version-1 layout fields; legacy layouts remain supported.
+function normalizeBackgroundColor(value){
+ if(typeof value!=='string')return null;
+ let h=value.trim().replace(/^#/,'');
+ if(/^[0-9a-f]{3}$/i.test(h))h=h.split('').map(c=>c+c).join('');
+ return /^[0-9a-f]{6}$/i.test(h)?'#'+h.toLowerCase():null;
+}
+function updateBackgroundUI(){
+ const hex=normalizeBackgroundColor(state.backgroundColor)||defaults.backgroundColor;
+ state.backgroundColor=hex;
+ renderer.backgroundColor=rgb(hex);
+ // One shared color source covers live changes, JSON restore and mode switches.
+ model.materials.floor.color=[...renderer.backgroundColor];
+ $('stage').style.backgroundColor=hex;
+ $('backgroundSwatch').style.backgroundColor=hex;
+ $('backgroundColor').value=hex;
+ if(document.activeElement!==$('backgroundHex'))$('backgroundHex').value=hex.toUpperCase();
+ $('groundPlane').checked=state.groundPlane;
+ $$('[data-background]').forEach(b=>{
+  const active=b.dataset.background===hex;
+  b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
+ });
+ const linear=rgb(hex).map(c=>c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4));
+ const dark=linear[0]*.2126+linear[1]*.7152+linear[2]*.0722<.28;
+ $('stage').style.setProperty('--scene-ink',dark?'#f1f6f3':'#2e5147');
+ $('stage').style.setProperty('--scene-muted',dark?'#c0d2c9':'#61786b');
+}
+function setBackgroundColor(value){
+ const hex=normalizeBackgroundColor(value);if(!hex)return false;
+ state.backgroundColor=hex;
+ $('backgroundHex').setAttribute('aria-invalid','false');$('backgroundError').hidden=true;
+ updateBackgroundUI();needsRender=true;return true;
+}
+function openBackground(){
+ keys.clear();drag=null;touches.clear();pinch=null;
+ if(document.pointerLockElement)document.exitPointerLock();
+ updateBackgroundUI();$('backgroundHex').value=state.backgroundColor.toUpperCase();
+ $('backgroundHex').setAttribute('aria-invalid','false');$('backgroundError').hidden=true;
+ if(!$('backgroundDialog').open)$('backgroundDialog').showModal();
+}
+function bindBackgroundUI(){
+ $('backgroundBtn').onclick=openBackground;
+ $('closeBackground').onclick=$('doneBackground').onclick=()=>$('backgroundDialog').close();
+ $$('[data-background]').forEach(b=>b.onclick=()=>setBackgroundColor(b.dataset.background));
+ $('backgroundColor').addEventListener('input',e=>setBackgroundColor(e.target.value));
+ $('backgroundColor').addEventListener('change',e=>setBackgroundColor(e.target.value));
+ $('backgroundHex').addEventListener('input',e=>{
+  $('backgroundHex').setAttribute('aria-invalid','false');$('backgroundError').hidden=true;
+  if(/^#?[0-9a-f]{6}$/i.test(e.target.value.trim()))setBackgroundColor(e.target.value);
+ });
+ const commitHex=()=>{
+  const field=$('backgroundHex');
+  if(setBackgroundColor(field.value))field.value=state.backgroundColor.toUpperCase();
+  else {field.setAttribute('aria-invalid','true');$('backgroundError').hidden=false;}
+ };
+ $('backgroundHex').addEventListener('change',commitHex);
+ $('backgroundHex').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commitHex();}});
+ $('groundPlane').onchange=e=>{state.groundPlane=e.target.checked;changed();};
+ $('resetBackground').onclick=()=>{state.groundPlane=defaults.groundPlane;setBackgroundColor(defaults.backgroundColor);changed();};
+ $('backgroundDialog').addEventListener('close',()=>keys.clear());
+}
+
 function updateUI(){
+ updateBackgroundUI();
  $$('[data-mode]').forEach(b=>b.classList.toggle('active',+b.dataset.mode===state.mode));
  const descriptions=[
   '通常の可視光表示。写真の色・部品構成を参考にしています。',
@@ -774,8 +917,8 @@ function updateTransforms(){
  model.materials.diffuser.alpha=1-.55*clamp(state.explode*2,0,1);
  for(let p of parts){
   let visible=p.userVisible;
-  if(!state.equipment&&['support','water','imaging','room'].includes(p.category))visible=false;
-  if(state.view==='below'&&!state.walk&&['imaging','room'].includes(p.category))visible=false;
+  if(!state.equipment&&['water','imaging'].includes(p.category))visible=false;
+  if(state.view==='below'&&!state.walk&&p.category==='imaging')visible=false;
   if(state.cutaway&&!state.walk&&['glassFront','glassRight','diffFront','diffRight','lid'].includes(p.id))visible=false;
   if(!state.insects&&p.id==='insects')visible=false;
   p.visible=visible;p.matrix=partTransform(p);
@@ -784,6 +927,7 @@ function updateTransforms(){
   if(mesh.gizmo)continue;
   if(mesh.localFn)mesh.local=mesh.localFn(state,time);
   mesh.model=mesh.part?M.mul(mesh.part.matrix,mesh.local):mesh.local;
+  if(mesh.backdrop)mesh.visible=state.groundPlane&&state.equipment&&!state.walk&&state.view!=='below';
   if(mesh.flow)mesh.visible=state.flow;
   if(mesh.cutHide)mesh.visible=!state.cutaway||state.walk;
  }
@@ -841,10 +985,13 @@ function applyConfig(c){
  if(state.walk)exitWalk();
  const vec=(v)=>Array.isArray(v)&&v.length===3&&v.every(n=>Number.isFinite(n));
  let s=c.state||{};
- for(let k of ['cutaway','equipment','labels','insects','demo','flow'])if(typeof s[k]==='boolean')state[k]=s[k];
+ for(let k of ['cutaway','equipment','labels','insects','demo','flow','groundPlane'])if(typeof s[k]==='boolean')state[k]=s[k];
  for(let k of ['explode','piston'])if(Number.isFinite(s[k]))state[k]=clamp(s[k],0,1);
+ if(normalizeBackgroundColor(s.backgroundColor))state.backgroundColor=normalizeBackgroundColor(s.backgroundColor);
  if(Number.isInteger(s.mode))state.mode=clamp(s.mode,0,2);
  if(['all','inside','top','below'].includes(s.view))state.view=s.view;
+ // Legacy layout IDs (supportL, supportR, extSupport, rack) are absent by
+ // design; ignore them so an old layout cannot recreate removed objects.
  for(let item of c.parts){if(!Object.prototype.hasOwnProperty.call(partMap,item.id))continue;let p=partMap[item.id];if(vec(item.offset))p.offset=item.offset.map(x=>clamp(x,-20,20));if(vec(item.rotation))p.rot=item.rotation.map(x=>clamp(x,-TAU,TAU));if(typeof item.visible==='boolean')p.userVisible=item.visible;}
  const o=c.orbit;if(o&&vec(o.target)&&[o.yaw,o.elev,o.distance].every(Number.isFinite))orbit={target:o.target.map(x=>clamp(x,-20,20)),yaw:o.yaw,elev:clamp(o.elev,-1.52,1.569),distance:clamp(o.distance,1,60)};
  cameraTween=null;animation=null;feedStart=null;state.walk=false;updateUI();changed();
@@ -924,8 +1071,8 @@ function enterWalk(){
 function exitWalk(){
  if(!state.walk)return;
  if(document.pointerLockElement)document.exitPointerLock();
- const mode=state.mode,restore=savedWalk;state.walk=false;keys.clear();drag=null;
- if(restore){applyConfig(restore.cfg);selected=partMap[restore.selectedId]||null;savedWalk=null;}state.mode=mode;updateUI();changed();
+ const mode=state.mode,backgroundColor=state.backgroundColor,groundPlane=state.groundPlane,restore=savedWalk;state.walk=false;keys.clear();drag=null;
+ if(restore){applyConfig(restore.cfg);selected=partMap[restore.selectedId]||null;savedWalk=null;}state.mode=mode;state.backgroundColor=backgroundColor;state.groundPlane=groundPlane;updateUI();changed();
 }
 function validWalk(x,z){return x>=-2.84&&x<=2.84&&z>=-1.34&&z<=1.34&&!(x>1.025-.064&&x<2.875+.064&&Math.abs(z)<1.235+.064);}
 function spawn(which){
@@ -1031,7 +1178,7 @@ function installInteraction(){
  c.addEventListener('wheel',e=>{e.preventDefault();if(state.walk)return;cameraTween=null;orbit.distance=clamp(orbit.distance*Math.exp(e.deltaY*.001),.65,60);needsRender=true;},{passive:false});
  c.addEventListener('dblclick',e=>{if(!state.walk&&selected)focusSelected();});
  window.addEventListener('keydown',e=>{
-  if($('aboutDialog').open||$('photoDialog').open)return;
+  if($('aboutDialog').open||$('photoDialog').open||$('backgroundDialog').open)return;
   if(e.code==='Escape'&&state.walk){exitWalk();e.preventDefault();return;}
   if(e.target.matches('input,select,textarea')&&e.code!=='Escape')return;
   if(state.walk&&['KeyW','KeyA','KeyS','KeyD','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','ShiftLeft','ShiftRight'].includes(e.code)){keys.add(e.code);e.preventDefault();return;}
@@ -1064,6 +1211,7 @@ function focusSelected(){
  cameraTo({target:center,yaw:orbit.yaw,elev:Math.max(.3,orbit.elev),distance:small?(p.id.startsWith('feed')?2.4:p.id==='shelter'?4.1:3.8):6.7});
 }
 function bindUI(){
+ bindBackgroundUI();
  $$('[data-mode]').forEach(b=>b.onclick=()=>setMode(+b.dataset.mode));
  $('quickVisionBtn').onclick=()=>{setMode((state.mode+1)%MODE_NAMES.length);toast('見え方：'+MODE_NAMES[state.mode]);};
  $('quickWalkBtn').onclick=()=>{state.walk?exitWalk():enterWalk();document.body.classList.remove('sidebarOpen');};
@@ -1113,7 +1261,7 @@ function bindUI(){
  $('aboutBtn').onclick=()=>$('aboutDialog').showModal();$('closeAbout').onclick=()=>$('aboutDialog').close();
  $('closePhoto').onclick=()=>$('photoDialog').close();
  $$('[data-ref]').forEach(im=>im.onclick=()=>{$('bigRef').src=im.src;$('bigRef').alt=im.alt;$('photoDialog').showModal();});
- for(let d of [$('aboutDialog'),$('photoDialog')])d.addEventListener('click',e=>{if(e.target===d){let r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}});
+ for(let d of [$('aboutDialog'),$('photoDialog'),$('backgroundDialog')])d.addEventListener('click',e=>{if(e.target===d){let r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}});
  $('sidebarToggle').onclick=()=>document.body.classList.toggle('sidebarOpen');
  const responsiveUpdate=()=>{updateUI();resize();};
  if(compactUI.addEventListener)compactUI.addEventListener('change',responsiveUpdate);
@@ -1151,7 +1299,7 @@ async function start(){
  try{
   renderer=new Renderer($('canvas'));state=copy(defaults);orbit=copy(initialOrbit);model=buildModel(renderer);parts=model.parts;partMap=model.byId;
   $('partCount').textContent=parts.length+'部品';
-  const cats={arena:'水槽内部',structure:'水槽・外装',water:'給排水系',imaging:'撮影・照明',support:'支持台',room:'実験台・ラック'};
+  const cats={arena:'水槽内部',structure:'水槽・外装',water:'給排水系',imaging:'撮影・照明'};
   for(let [key,title] of Object.entries(cats)){let group=document.createElement('optgroup');group.label=title;parts.filter(p=>p.category===key).forEach(p=>{let o=document.createElement('option');o.value=p.id;o.textContent=p.name;group.appendChild(o);});$('partSelect').appendChild(group);}
   for(let p of parts.filter(p=>p.number)){let b=document.createElement('button');b.className='partLabel';b.dataset.part=p.id;b.innerHTML='<span class="num">'+p.number+'</span><span></span>';b.lastElementChild.textContent={shelter:'赤い隠れ家',feedB:'給餌ピストン',pool:'プール',camera:'850 nm カメラ',reservoir:'給水タンク',ir:'赤外線投光器',catch:'排水受け'}[p.id];b.onclick=()=>selectPart(p);$('labels').appendChild(b);}
   createGizmos();bindUI();installInteraction();resize();updateUI();calcCamera();updateTransforms();renderer.render(vp,eye,state.mode,0,shelterUniform());drawMap();updateLabels();
@@ -1161,7 +1309,7 @@ async function start(){
   $('loading').hidden=true;
   if(layoutStatus.state==='loaded')toast('保存済みの配置を自動で読み込みました。');
   new ResizeObserver(resize).observe($('stage'));
-  window.__arena={get state(){return state;},get orbit(){return orbit;},get eye(){return eye;},get walk(){return walk;},get selected(){return selected;},get layoutStatus(){return{...layoutStatus};},loadNearbyLayout,parts,renderer,setView,setMode,enterWalk,exitWalk,selectPart,explodeTo,config,applyConfig,spawn,validWalk,render:()=>{changed();},project};
+  window.__arena={get state(){return state;},get orbit(){return orbit;},get eye(){return eye;},get walk(){return walk;},get selected(){return selected;},get layoutStatus(){return{...layoutStatus};},loadNearbyLayout,parts,renderer,setView,setMode,setBackgroundColor,enterWalk,exitWalk,selectPart,explodeTo,config,applyConfig,spawn,validWalk,render:()=>{changed();},project};
   window.__arenaReady=true;requestAnimationFrame(frame);
  }catch(err){
   console.error(err);$('loading').classList.add('error');$('loading').querySelector('b').textContent='3D表示を開始できませんでした';$('loading').querySelector('small').textContent=err.message+'　WebGL 2が有効なChrome、Edge、Firefoxなどで開いてください。';
